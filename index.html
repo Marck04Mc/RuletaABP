@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruleta de Intervenciones Sociales</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Personalización de Tailwind para usar la fuente Inter */
+        :root {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Estilo para el contenedor de la ruleta */
+        .wheel-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 300px;
+            height: 300px;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        /* El elemento principal de la ruleta usando conic-gradient para las 4 secciones */
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1); /* Curva de desaceleración para el giro */
+            background: conic-gradient(
+                #ef4444 0% 90deg,    /* Rojo: Q1 */
+                #3b82f6 90deg 180deg,  /* Azul: Q2 */
+                #22c55e 180deg 270deg, /* Verde: Q3 */
+                #f59e0b 270deg 360deg  /* Amarillo: Q4 */
+            );
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3), inset 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Puntero/Indicador */
+        .indicator {
+            position: absolute;
+            top: -15px; /* Ajuste para que apunte al centro superior */
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 15px solid #1f2937; /* Color oscuro para contraste */
+            z-index: 10;
+        }
+
+        /* Estilos para los números de las preguntas dentro de la ruleta */
+        .segment-text {
+            position: absolute;
+            font-weight: bold;
+            color: white;
+            font-size: 1.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Posiciones específicas para los textos de Q1 a Q4 */
+        /* Q1 (Rojo) - Centro superior derecha (45 grados) */
+        .text-q1 { top: 35px; right: 35px; transform: rotate(45deg); }
+        /* Q2 (Azul) - Centro inferior derecha (135 grados) */
+        .text-q2 { bottom: 35px; right: 35px; transform: rotate(135deg); }
+        /* Q3 (Verde) - Centro inferior izquierda (225 grados) */
+        .text-q3 { bottom: 35px; left: 35px; transform: rotate(225deg); }
+        /* Q4 (Amarillo) - Centro superior izquierda (315 grados) */
+        .text-q4 { top: 35px; left: 35px; transform: rotate(315deg); }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 sm:p-8 flex flex-col items-center">
+
+    <div class="max-w-xl w-full bg-white p-6 sm:p-8 rounded-xl shadow-2xl">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6 border-b pb-3">
+            Ruleta de Intervenciones Sociales
+        </h1>
+
+        <!-- Contenedor de la Ruleta y Puntero -->
+        <div class="wheel-container mb-8">
+            <div class="indicator"></div>
+            <div id="wheel" class="wheel">
+                <!-- Textos de Pregunta (posiciones relativas al centro) -->
+                <span class="segment-text text-q1">Q4</span>
+                <span class="segment-text text-q2">Q3</span>
+                <span class="segment-text text-q3">Q2</span>
+                <span class="segment-text text-q4">Q1</span>
+            </div>
+            <!-- Círculo central estático -->
+            <div class="absolute w-12 h-12 bg-gray-900 rounded-full border-4 border-white shadow-md"></div>
+        </div>
+
+        <!-- Botón de Giro -->
+        <button id="spinButton"
+            class="w-full py-3 px-6 bg-indigo-600 text-white font-semibold text-lg rounded-lg shadow-lg hover:bg-indigo-700 transition duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            onclick="spinWheel()">
+            GIRAR RULETA
+        </button>
+
+        <!-- Mensaje de estado -->
+        <p id="message" class="text-center mt-4 text-gray-600 h-6"></p>
+    </div>
+
+    <!-- Modal para mostrar la Pregunta/Diapositiva -->
+    <div id="modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex justify-center items-center p-4">
+        <div class="bg-white rounded-xl shadow-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8">
+            <div class="flex justify-between items-start border-b pb-3 mb-4">
+                <h2 id="modalTitle" class="text-2xl font-bold text-indigo-700"></h2>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-800 text-3xl leading-none">&times;</button>
+            </div>
+            <div id="modalBody" class="space-y-4 text-gray-700">
+                <!-- 1. Pregunta para el estudiante -->
+                <p id="modalQuestion" class="text-xl font-semibold text-gray-800"></p>
+                
+                <!-- 2. Botón para revelar la respuesta -->
+                <button id="revealButton"
+                    class="w-full py-2 px-4 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-150"
+                    onclick="revealAnswer()">
+                    Revelar Respuesta / Solución
+                </button>
+
+                <!-- 3. Contenido/Respuesta (inicialmente oculto) -->
+                <div id="modalContent" class="mt-4 p-4 border rounded-lg bg-gray-50"></div>
+
+                <!-- 4. Sección LLM para pregunta de debate (inicialmente oculto) -->
+                <div id="debateSection" class="hidden pt-4 border-t border-gray-200">
+                    <p class="text-lg font-bold text-gray-700 mb-2">Pregunta de Debate Generada por IA:</p>
+                    <p id="debateQuestion" class="p-3 bg-yellow-100 border border-yellow-300 rounded-lg italic text-gray-800 min-h-[40px] flex items-center">
+                        <!-- Aquí se mostrará la pregunta de debate -->
+                    </p>
+                    <button id="generateButton"
+                        class="w-full mt-3 py-2 px-4 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 transition duration-150 flex items-center justify-center disabled:opacity-50"
+                        onclick="generateDebateQuestion()">
+                        <span id="buttonText">✨ Generar Pregunta de Debate</span>
+                        <span id="loadingIndicator" class="hidden ml-2">
+                             <!-- Simple Spinner SVG -->
+                            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+            </div>
+            <div class="mt-6 text-right">
+                <button onclick="closeModal()" class="py-2 px-4 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- API CONFIGURATION ---
+        const API_KEY = ""; // Key is provided by the environment
+        const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=" + API_KEY;
+        const RETRY_ATTEMPTS = 5;
+        
+        // Data mapping (Questions and Slides)
+        const questions = [
+            // Segment 1 (Red) -> Target Angle 45°
+            {
+                id: 1,
+                color: 'Red',
+                title: 'Q1: Foco del Estudio',
+                question: 'What is the main focus of this study on the digital divide?',
+                content_title: 'De qué trata mi tema:',
+                content: 'This study focuses on the **lack of digital tools** for monitoring social work cases. It examines how this gap limits efficiency, data accuracy, and timely follow-up in addressing the needs of vulnerable populations.',
+                minAngle: 0, maxAngle: 90
+            },
+            // Segment 2 (Blue) -> Target Angle 135°
+            {
+                id: 2,
+                color: 'Blue',
+                title: 'Q2: Propósito Central',
+                question: 'What is the purpose of emphasizing the importance of digital platforms in case management?',
+                content_title: 'De qué vamos a hablar:',
+                content: 'The purpose is to emphasize the **importance of digital platforms** in improving case management and to propose solutions that strengthen social workers\' ability to respond effectively.',
+                minAngle: 90, maxAngle: 180
+            },
+            // Segment 3 (Green) -> Target Angle 225°
+            {
+                id: 3,
+                color: 'Green',
+                title: 'Q3: Relevancia del Tema',
+                question: 'Why is the topic relevant to social work?',
+                content_title: 'El propósito del tema es:',
+                content: 'The topic is relevant because social work often deals with critical situations such as **domestic violence, child protection, and poverty**. Without proper digital tools, information may be lost or delayed, negatively impacting those who need support the most.',
+                minAngle: 180, maxAngle: 270
+            },
+            // Segment 4 (Yellow) -> Target Angle 315°
+            {
+                id: 4,
+                color: 'Yellow',
+                title: 'Q4: Impacto Social',
+                question: 'What is the potential impact on society by integrating technology into social work?',
+                content_title: 'El enfoque o impacto es:',
+                content: 'The impact on society lies in the potential to create a **more efficient, transparent, and inclusive support system** by integrating technology into social work practices.',
+                minAngle: 270, maxAngle: 360
+            },
+        ];
+
+        // --- DOM Elements ---
+        const wheel = document.getElementById('wheel');
+        const spinButton = document.getElementById('spinButton');
+        const messageElement = document.getElementById('message');
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalQuestion = document.getElementById('modalQuestion');
+        const modalContent = document.getElementById('modalContent');
+        const revealButton = document.getElementById('revealButton');
+        const debateSection = document.getElementById('debateSection');
+        const debateQuestion = document.getElementById('debateQuestion');
+        const generateButton = document.getElementById('generateButton');
+        const buttonText = document.getElementById('buttonText');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+
+        let isSpinning = false;
+        let currentSegmentContent = ''; // Stores the content of the winning slide for the LLM call
+
+        // --- UTILITY FUNCTIONS ---
+
+        /**
+         * Finds the winning segment based on the final wheel angle.
+         * The pointer is at the top (0/360 degrees).
+         *
+         * @param {number} finalAngle The final rotation angle (0-360)
+         * @returns {object} The winning question object.
+         */
+        function getWinningSegment(finalAngle) {
+            let normalizedAngle = finalAngle % 360;
+            if (normalizedAngle < 0) {
+                normalizedAngle += 360;
+            }
+
+            // winAngle is the angle of the segment that lands under the top pointer (0/360)
+            let winAngle = (360 - normalizedAngle) % 360;
+
+            // Check against segment boundaries based on the winAngle
+            if (winAngle >= 270 && winAngle <= 360) {
+                return questions[3]; // Q4 (Yellow)
+            } else if (winAngle >= 180 && winAngle < 270) {
+                return questions[2]; // Q3 (Green)
+            } else if (winAngle >= 90 && winAngle < 180) {
+                return questions[1]; // Q2 (Blue)
+            } else { // winAngle >= 0 && winAngle < 90
+                return questions[0]; // Q1 (Red)
+            }
+        }
+
+        // --- WHEEL MECHANICS ---
+
+        /**
+         * Starts the wheel spin.
+         */
+        function spinWheel() {
+            if (isSpinning) return;
+            isSpinning = true;
+            spinButton.disabled = true;
+            messageElement.textContent = '¡Girando...! ¡Mucha suerte!';
+
+            // 1. Generate full rotations (e.g., 5 to 10 spins)
+            const minRotations = 5;
+            const maxRotations = 10;
+            const fullRotations = Math.floor(Math.random() * (maxRotations - minRotations + 1)) + minRotations;
+            const fullRotationAngle = fullRotations * 360;
+
+            // 2. Generate the stopping angle to land within a specific sector
+            const winningIndex = Math.floor(Math.random() * questions.length); // 0, 1, 2, or 3
+            const winningQuestion = questions[winningIndex];
+
+            // 3. Determine the final spin angle to center the winning segment under the pointer (0 degrees)
+            const sectorStart = winningQuestion.minAngle;
+            // The center of the 90-degree sector is sectorStart + 45.
+            const sectorCenter = sectorStart + 45;
+
+            // Random offset within the sector (-40 to +40 degrees)
+            const randomOffset = Math.random() * 80 - 40;
+
+            // The angle needed to place the center of the sector under the pointer is:
+            // (360 - sectorCenter) + 360*N
+            let targetOffsetAngle = (360 - sectorCenter) % 360;
+
+            // Apply the random offset to the target angle
+            let finalSpinAngle = fullRotationAngle + targetOffsetAngle + randomOffset;
+
+            // Apply the rotation transform
+            wheel.style.transform = `rotate(${finalSpinAngle}deg)`;
+
+            // Wait for the transition to finish (5 seconds)
+            setTimeout(() => {
+                isSpinning = false;
+                spinButton.disabled = false;
+
+                // Calculate the effective final angle (0-360) to determine the result
+                const effectiveAngle = finalSpinAngle % 360;
+                const result = getWinningSegment(effectiveAngle);
+
+                messageElement.textContent = `¡Caíste en la pregunta ${result.id}!`;
+                showModal(result);
+
+            }, 5000); // Matches the CSS transition time
+        }
+
+        // --- MODAL & LLM LOGIC ---
+
+        /**
+         * Displays the modal with the question and content of the winning segment.
+         * @param {object} segment The winning segment object.
+         */
+        function showModal(segment) {
+            modalTitle.textContent = segment.title;
+            modalQuestion.textContent = segment.question;
+            
+            // Store content for LLM use
+            currentSegmentContent = segment.content;
+
+            // Load the content/answer
+            modalContent.innerHTML = `
+                <p class="text-lg font-semibold mb-2">${segment.content_title}</p>
+                <p>${segment.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</p>
+            `;
+
+            // Reset modal state
+            modalContent.classList.add('hidden');
+            revealButton.classList.remove('hidden');
+            debateSection.classList.add('hidden');
+            debateQuestion.textContent = 'Haz clic para generar...';
+            
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        /**
+         * Function to reveal the answer content and show the debate section.
+         */
+        window.revealAnswer = function() {
+            revealButton.classList.add('hidden');
+            modalContent.classList.remove('hidden');
+            debateSection.classList.remove('hidden');
+        }
+
+        /**
+         * Hides the modal.
+         */
+        window.closeModal = function() {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        /**
+         * Calls the Gemini API to generate a follow-up debate question.
+         */
+        window.generateDebateQuestion = async function() {
+            generateButton.disabled = true;
+            buttonText.textContent = 'Generando...';
+            loadingIndicator.classList.remove('hidden');
+            debateQuestion.textContent = 'Cargando pregunta...';
+
+            const userQuery = `Based on the following content, generate ONE concise and open-ended debate question for students in the Spanish language. The question should encourage critical thinking about the social implications of the content. Content: "${currentSegmentContent}"`;
+            const systemPrompt = "You are a specialized academic assistant. Your task is to generate a single, thought-provoking debate question based on the provided text. The output MUST be only the question, formatted in Spanish.";
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+                config: {
+                    temperature: 0.8,
+                }
+            };
+            
+            for (let attempt = 1; attempt <= RETRY_ATTEMPTS; attempt++) {
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    const generatedText = result.candidates?.[0]?.content?.parts?.[0]?.text || "Error: No se pudo generar la pregunta.";
+                    
+                    // Display the generated text
+                    debateQuestion.textContent = generatedText;
+
+                    break; // Success, exit loop
+
+                } catch (error) {
+                    console.error(`Attempt ${attempt} failed:`, error);
+                    if (attempt === RETRY_ATTEMPTS) {
+                        debateQuestion.textContent = "Error al conectar con la IA. Inténtalo de nuevo más tarde.";
+                    } else {
+                        // Exponential backoff
+                        const delay = Math.pow(2, attempt) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
+                }
+            }
+            
+            // Revert button state
+            generateButton.disabled = false;
+            buttonText.textContent = '✨ Generar Pregunta de Debate';
+            loadingIndicator.classList.add('hidden');
+        }
+
+        // --- INITIALIZATION ---
+        window.onload = () => {
+             // Ensure the wheel starts with no previous rotation applied in JS
+             wheel.style.transform = 'rotate(0deg)';
+        };
+
+    </script>
+</body>
+</html>
