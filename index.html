@@ -183,7 +183,9 @@
 
     <script>
         // --- API CONFIGURATION ---
-        const API_KEY = ""; // Key is provided by the environment
+        // La clave API se establece a una cadena vacía. El entorno de ejecución (Canvas)
+        // la inyectará automáticamente en tiempo de ejecución, lo que suele solucionar problemas.
+        const API_KEY = ""; 
         const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=" + API_KEY;
         const RETRY_ATTEMPTS = 5;
         
