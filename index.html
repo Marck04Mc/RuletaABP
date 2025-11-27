@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ruleta de Intervenciones Sociales</title>
-    <!-- Carga de Tailwind CSS -->
+    <title>Millionaire Social Interventions Roulette</title>
+    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Personalización de Tailwind para usar la fuente Inter */
+        /* Custom Tailwind configuration using Inter font */
         :root {
             font-family: 'Inter', sans-serif;
         }
 
-        /* Estilo para el contenedor de la ruleta */
+        /* Style for the wheel container */
         .wheel-container {
             display: flex;
             justify-content: center;
@@ -24,34 +24,34 @@
             margin: 0 auto;
         }
 
-        /* El elemento principal de la ruleta usando conic-gradient para las 4 secciones */
+        /* The main wheel element using conic-gradient for the 4 sections */
         .wheel {
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1); /* Curva de desaceleración para el giro */
+            transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1); /* Deceleration curve for spinning */
             background: conic-gradient(
-                #ef4444 0% 90deg,    /* Rojo: Q1 */
-                #3b82f6 90deg 180deg,  /* Azul: Q2 */
-                #22c55e 180deg 270deg, /* Verde: Q3 */
-                #f59e0b 270deg 360deg  /* Amarillo: Q4 */
+                #ef4444 0% 90deg,    /* Red: Q1 */
+                #3b82f6 90deg 180deg,  /* Blue: Q2 */
+                #22c55e 180deg 270deg, /* Green: Q3 */
+                #f59e0b 270deg 360deg  /* Yellow: Q4 */
             );
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3), inset 0 0 10px rgba(255, 255, 255, 0.5);
         }
 
-        /* Puntero/Indicador */
+        /* Pointer/Indicator */
         .indicator {
             position: absolute;
-            top: -15px; /* Ajuste para que apunte al centro superior */
+            top: -15px; /* Adjustment to point to the top center */
             width: 0;
             height: 0;
             border-left: 15px solid transparent;
             border-right: 15px solid transparent;
-            border-bottom: 15px solid #1f2937; /* Color oscuro para contraste */
+            border-bottom: 15px solid #1f2937; /* Dark color for contrast */
             z-index: 10;
         }
 
-        /* Estilos para los números de las preguntas dentro de la ruleta */
+        /* Styles for the question numbers inside the wheel */
         .segment-text {
             position: absolute;
             font-weight: bold;
@@ -60,93 +60,121 @@
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
         }
 
-        /* Posiciones específicas para los textos de Q1 a Q4 */
-        /* Q1 (Rojo) - Centro superior derecha (45 grados) */
+        /* Specific positions for Q1 to Q4 texts */
+        /* Q1 (Red) - Top center right (45 degrees) */
         .text-q1 { top: 35px; right: 35px; transform: rotate(45deg); }
-        /* Q2 (Azul) - Centro inferior derecha (135 grados) */
+        /* Q2 (Blue) - Bottom center right (135 degrees) */
         .text-q2 { bottom: 35px; right: 35px; transform: rotate(135deg); }
-        /* Q3 (Verde) - Centro inferior izquierda (225 grados) */
+        /* Q3 (Green) - Bottom center left (225 degrees) */
         .text-q3 { bottom: 35px; left: 35px; transform: rotate(225deg); }
-        /* Q4 (Amarillo) - Centro superior izquierda (315 grados) */
+        /* Q4 (Yellow) - Top center left (315 degrees) */
         .text-q4 { top: 35px; left: 35px; transform: rotate(315deg); }
+        
+        /* Styles for answer buttons */
+        .option-button {
+            transition: background-color 0.15s;
+        }
+        .option-button:hover:not(:disabled) {
+            background-color: #4f46e5; /* indigo-600 */
+        }
+        .correct {
+            background-color: #10b981 !important; /* emerald-500 */
+        }
+        .incorrect {
+            background-color: #ef4444 !important; /* red-500 */
+        }
+        .disabled-option {
+            background-color: #6b7280; /* gray-500 */
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen p-4 sm:p-8 flex flex-col items-center">
 
     <div class="max-w-xl w-full bg-white p-6 sm:p-8 rounded-xl shadow-2xl">
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-6 border-b pb-3">
-            Ruleta de Intervenciones Sociales
+            Millionaire Social Interventions Roulette
         </h1>
 
-        <!-- Contenedor de la Ruleta y Puntero -->
+        <!-- Wheel Container and Pointer -->
         <div class="wheel-container mb-8">
             <div class="indicator"></div>
             <div id="wheel" class="wheel">
-                <!-- Textos de Pregunta (posiciones relativas al centro) -->
+                <!-- Question Texts (relative to the center) -->
                 <span class="segment-text text-q1">Q4</span>
                 <span class="segment-text text-q2">Q3</span>
                 <span class="segment-text text-q3">Q2</span>
                 <span class="segment-text text-q4">Q1</span>
             </div>
-            <!-- Círculo central estático -->
+            <!-- Static center circle -->
             <div class="absolute w-12 h-12 bg-gray-900 rounded-full border-4 border-white shadow-md"></div>
         </div>
 
-        <!-- Botón de Giro -->
+        <!-- Spin Button -->
         <button id="spinButton"
             class="w-full py-3 px-6 bg-indigo-600 text-white font-semibold text-lg rounded-lg shadow-lg hover:bg-indigo-700 transition duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             onclick="spinWheel()">
-            GIRAR RULETA
+            SPIN WHEEL
         </button>
 
-        <!-- Mensaje de estado -->
+        <!-- Status Message -->
         <p id="message" class="text-center mt-4 text-gray-600 h-6"></p>
     </div>
 
-    <!-- Modal para mostrar la Pregunta/Diapositiva -->
+    <!-- Modal for the multiple-choice game -->
     <div id="modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex justify-center items-center p-4">
-        <div class="bg-white rounded-xl shadow-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8">
+        <div class="bg-white rounded-xl shadow-3xl max-w-2xl w-full max-h-[95vh] overflow-y-auto p-6 sm:p-8">
             <div class="flex justify-between items-start border-b pb-3 mb-4">
                 <h2 id="modalTitle" class="text-2xl font-bold text-indigo-700"></h2>
                 <button onclick="closeModal()" class="text-gray-500 hover:text-gray-800 text-3xl leading-none">&times;</button>
             </div>
-            <div id="modalBody" class="space-y-4 text-gray-700">
-                <!-- 1. Pregunta para el estudiante -->
-                <p id="modalQuestion" class="text-xl font-semibold text-gray-800"></p>
+            
+            <!-- Initial Loading Indicator -->
+            <div id="loadingScreen" class="flex flex-col items-center justify-center p-12 text-gray-600">
+                <svg class="animate-spin h-8 w-8 text-indigo-500 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="font-semibold">Generating multiple-choice question with Gemini...</p>
+            </div>
+
+            <!-- Game Content (Initially hidden) -->
+            <div id="gameContent" class="hidden">
                 
-                <!-- 2. Botón para revelar la respuesta -->
-                <button id="revealButton"
-                    class="w-full py-2 px-4 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-150"
-                    onclick="revealAnswer()">
-                    Revelar Respuesta / Solución
-                </button>
-
-                <!-- 3. Contenido/Respuesta (inicialmente oculto) -->
-                <div id="modalContent" class="mt-4 p-4 border rounded-lg bg-gray-50"></div>
-
-                <!-- 4. Sección LLM para pregunta de debate (inicialmente oculto) -->
-                <div id="debateSection" class="hidden pt-4 border-t border-gray-200">
-                    <p class="text-lg font-bold text-gray-700 mb-2">Pregunta de Debate Generada por IA:</p>
-                    <p id="debateQuestion" class="p-3 bg-yellow-100 border border-yellow-300 rounded-lg italic text-gray-800 min-h-[40px] flex items-center">
-                        <!-- Aquí se mostrará la pregunta de debate -->
-                    </p>
-                    <button id="generateButton"
-                        class="w-full mt-3 py-2 px-4 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 transition duration-150 flex items-center justify-center disabled:opacity-50"
-                        onclick="generateDebateQuestion()">
-                        <span id="buttonText">✨ Generar Pregunta de Debate</span>
-                        <span id="loadingIndicator" class="hidden ml-2">
-                             <!-- Simple Spinner SVG -->
-                            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                        </span>
+                <!-- LIFELINES (HELPS) -->
+                <div class="flex justify-around mb-6 p-3 bg-gray-100 rounded-lg shadow-inner">
+                    <button id="help5050" 
+                        class="px-3 py-1 bg-yellow-500 text-white font-semibold rounded-full shadow-md hover:bg-yellow-600 transition disabled:opacity-50"
+                        onclick="use5050()" title="Eliminates two incorrect answers">
+                        50/50
+                    </button>
+                    <button id="helpAskGemini" 
+                        class="px-3 py-1 bg-purple-500 text-white font-semibold rounded-full shadow-md hover:bg-purple-600 transition disabled:opacity-50"
+                        onclick="useAskGemini()" title="Asks the AI for a hint">
+                        Ask Gemini ✨
                     </button>
                 </div>
+                
+                <!-- QUESTION AREA -->
+                <p id="gameQuestion" class="text-xl font-bold text-gray-800 mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500"></p>
+                
+                <!-- ANSWER OPTIONS -->
+                <div id="optionsContainer" class="space-y-4">
+                    <!-- Option buttons will be inserted here -->
+                </div>
+
+                <!-- FEEDBACK / GEMINI HINT -->
+                <div id="feedbackArea" class="mt-6 space-y-3">
+                    <p id="geminiHint" class="hidden p-3 bg-indigo-100 border border-indigo-400 rounded-lg text-sm text-indigo-800 italic"></p>
+                    <p id="resultMessage" class="hidden text-center text-lg font-bold p-3 rounded-lg"></p>
+                </div>
             </div>
+
+            <!-- Close Button -->
             <div class="mt-6 text-right">
                 <button onclick="closeModal()" class="py-2 px-4 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300">
-                    Cerrar
+                    Next Question
                 </button>
             </div>
         </div>
@@ -154,53 +182,40 @@
 
     <script>
         // --- API CONFIGURATION ---
-        const API_KEY = ""; // Key is provided by the environment
+        const API_KEY = "AIzaSyA_fPnKEozH3ufteVusyv8x9Xv2VVN7KFk"; // Key is provided by the environment
         const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=" + API_KEY;
         const RETRY_ATTEMPTS = 5;
         
-        // Data mapping (Questions and Slides)
+        // Data mapping (Questions and Slides) - Content is used to generate the MCQ
         const questions = [
-            // Segment 1 (Red) -> Target Angle 45°
             {
-                id: 1,
-                color: 'Red',
-                title: 'Q1: Foco del Estudio',
+                id: 1, color: 'Red', title: 'Q1: Study Focus', 
                 question: 'What is the main focus of this study on the digital divide?',
-                content_title: 'De qué trata mi tema:',
-                content: 'This study focuses on the **lack of digital tools** for monitoring social work cases. It examines how this gap limits efficiency, data accuracy, and timely follow-up in addressing the needs of vulnerable populations.',
-                minAngle: 0, maxAngle: 90
+                content: 'This study focuses on the **lack of digital tools** for monitoring social work cases. It examines how this gap limits efficiency, data accuracy, and timely follow-up in addressing the needs of vulnerable populations.'
             },
-            // Segment 2 (Blue) -> Target Angle 135°
             {
-                id: 2,
-                color: 'Blue',
-                title: 'Q2: Propósito Central',
+                id: 2, color: 'Blue', title: 'Q2: Central Purpose', 
                 question: 'What is the purpose of emphasizing the importance of digital platforms in case management?',
-                content_title: 'De qué vamos a hablar:',
-                content: 'The purpose is to emphasize the **importance of digital platforms** in improving case management and to propose solutions that strengthen social workers\' ability to respond effectively.',
-                minAngle: 90, maxAngle: 180
+                content: 'The purpose is to emphasize the **importance of digital platforms** in improving case management and to propose solutions that strengthen social workers\' ability to respond effectively.'
             },
-            // Segment 3 (Green) -> Target Angle 225°
             {
-                id: 3,
-                color: 'Green',
-                title: 'Q3: Relevancia del Tema',
+                id: 3, color: 'Green', title: 'Q3: Topic Relevance', 
                 question: 'Why is the topic relevant to social work?',
-                content_title: 'El propósito del tema es:',
-                content: 'The topic is relevant because social work often deals with critical situations such as **domestic violence, child protection, and poverty**. Without proper digital tools, information may be lost or delayed, negatively impacting those who need support the most.',
-                minAngle: 180, maxAngle: 270
+                content: 'The topic is relevant because social work often deals with critical situations such as **domestic violence, child protection, and poverty**. Without proper digital tools, information may be lost or delayed, negatively impacting those who need support the most.'
             },
-            // Segment 4 (Yellow) -> Target Angle 315°
             {
-                id: 4,
-                color: 'Yellow',
-                title: 'Q4: Impacto Social',
+                id: 4, color: 'Yellow', title: 'Q4: Social Impact', 
                 question: 'What is the potential impact on society by integrating technology into social work?',
-                content_title: 'El enfoque o impacto es:',
-                content: 'The impact on society lies in the potential to create a **more efficient, transparent, and inclusive support system** by integrating technology into social work practices.',
-                minAngle: 270, maxAngle: 360
+                content: 'The impact on society lies in the potential to create a **more efficient, transparent, and inclusive support system** by integrating technology into social work practices.'
             },
         ];
+
+        // --- GAME STATE ---
+        let isSpinning = false;
+        let gameData = null; // Stores the MCQ data: { question, options, correctIndex }
+        let used5050 = false;
+        let usedAskGemini = false;
+        let selectedElement = null;
 
         // --- DOM Elements ---
         const wheel = document.getElementById('wheel');
@@ -208,37 +223,28 @@
         const messageElement = document.getElementById('message');
         const modal = document.getElementById('modal');
         const modalTitle = document.getElementById('modalTitle');
-        const modalQuestion = document.getElementById('modalQuestion');
-        const modalContent = document.getElementById('modalContent');
-        const revealButton = document.getElementById('revealButton');
-        const debateSection = document.getElementById('debateSection');
-        const debateQuestion = document.getElementById('debateQuestion');
-        const generateButton = document.getElementById('generateButton');
-        const buttonText = document.getElementById('buttonText');
-        const loadingIndicator = document.getElementById('loadingIndicator');
+        const loadingScreen = document.getElementById('loadingScreen');
+        const gameContent = document.getElementById('gameContent');
+        const gameQuestion = document.getElementById('gameQuestion');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const help5050 = document.getElementById('help5050');
+        const helpAskGemini = document.getElementById('helpAskGemini');
+        const geminiHint = document.getElementById('geminiHint');
+        const resultMessage = document.getElementById('resultMessage');
 
-        let isSpinning = false;
-        let currentSegmentContent = ''; // Stores the content of the winning slide for the LLM call
 
         // --- UTILITY FUNCTIONS ---
 
         /**
          * Finds the winning segment based on the final wheel angle.
-         * The pointer is at the top (0/360 degrees).
-         *
-         * @param {number} finalAngle The final rotation angle (0-360)
-         * @returns {object} The winning question object.
          */
         function getWinningSegment(finalAngle) {
             let normalizedAngle = finalAngle % 360;
             if (normalizedAngle < 0) {
                 normalizedAngle += 360;
             }
-
-            // winAngle is the angle of the segment that lands under the top pointer (0/360)
             let winAngle = (360 - normalizedAngle) % 360;
 
-            // Check against segment boundaries based on the winAngle
             if (winAngle >= 270 && winAngle <= 360) {
                 return questions[3]; // Q4 (Yellow)
             } else if (winAngle >= 180 && winAngle < 270) {
@@ -250,128 +256,55 @@
             }
         }
 
-        // --- WHEEL MECHANICS ---
-
         /**
-         * Starts the wheel spin.
+         * Converts option index to letter (A, B, C, D)
          */
-        function spinWheel() {
-            if (isSpinning) return;
-            isSpinning = true;
-            spinButton.disabled = true;
-            messageElement.textContent = '¡Girando...! ¡Mucha suerte!';
-
-            // 1. Generate full rotations (e.g., 5 to 10 spins)
-            const minRotations = 5;
-            const maxRotations = 10;
-            const fullRotations = Math.floor(Math.random() * (maxRotations - minRotations + 1)) + minRotations;
-            const fullRotationAngle = fullRotations * 360;
-
-            // 2. Generate the stopping angle to land within a specific sector
-            const winningIndex = Math.floor(Math.random() * questions.length); // 0, 1, 2, or 3
-            const winningQuestion = questions[winningIndex];
-
-            // 3. Determine the final spin angle to center the winning segment under the pointer (0 degrees)
-            const sectorStart = winningQuestion.minAngle;
-            // The center of the 90-degree sector is sectorStart + 45.
-            const sectorCenter = sectorStart + 45;
-
-            // Random offset within the sector (-40 to +40 degrees)
-            const randomOffset = Math.random() * 80 - 40;
-
-            // The angle needed to place the center of the sector under the pointer is:
-            // (360 - sectorCenter) + 360*N
-            let targetOffsetAngle = (360 - sectorCenter) % 360;
-
-            // Apply the random offset to the target angle
-            let finalSpinAngle = fullRotationAngle + targetOffsetAngle + randomOffset;
-
-            // Apply the rotation transform
-            wheel.style.transform = `rotate(${finalSpinAngle}deg)`;
-
-            // Wait for the transition to finish (5 seconds)
-            setTimeout(() => {
-                isSpinning = false;
-                spinButton.disabled = false;
-
-                // Calculate the effective final angle (0-360) to determine the result
-                const effectiveAngle = finalSpinAngle % 360;
-                const result = getWinningSegment(effectiveAngle);
-
-                messageElement.textContent = `¡Caíste en la pregunta ${result.id}!`;
-                showModal(result);
-
-            }, 5000); // Matches the CSS transition time
+        function indexToLetter(index) {
+            return String.fromCharCode(65 + index);
         }
-
-        // --- MODAL & LLM LOGIC ---
+        
+        // --- LLM GENERATION FUNCTION ---
 
         /**
-         * Displays the modal with the question and content of the winning segment.
-         * @param {object} segment The winning segment object.
+         * Calls the Gemini API to generate a structured Multiple Choice Question.
+         * @param {object} segment The winning segment data.
+         * @returns {Promise<object>} The generated MCQ data or null on failure.
          */
-        function showModal(segment) {
-            modalTitle.textContent = segment.title;
-            modalQuestion.textContent = segment.question;
-            
-            // Store content for LLM use
-            currentSegmentContent = segment.content;
-
-            // Load the content/answer
-            modalContent.innerHTML = `
-                <p class="text-lg font-semibold mb-2">${segment.content_title}</p>
-                <p>${segment.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</p>
+        async function fetchMCQ(segment) {
+            const userQuery = `Based on the following main question and content, generate a related multiple-choice question. The output MUST be a JSON object.
+                Main Question: "${segment.question}"
+                Content/Answer Context: "${segment.content}"
+                Instructions:
+                1. The output must be entirely in English.
+                2. Generate 4 options (A, B, C, D), where one is clearly correct based on the content, and the other three are plausible distractors.
+                3. The generated 'question' should be a complete sentence.
             `;
-
-            // Reset modal state
-            modalContent.classList.add('hidden');
-            revealButton.classList.remove('hidden');
-            debateSection.classList.add('hidden');
-            debateQuestion.textContent = 'Haz clic para generar...';
             
-            modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        /**
-         * Function to reveal the answer content and show the debate section.
-         */
-        window.revealAnswer = function() {
-            revealButton.classList.add('hidden');
-            modalContent.classList.remove('hidden');
-            debateSection.classList.remove('hidden');
-        }
-
-        /**
-         * Hides the modal.
-         */
-        window.closeModal = function() {
-            modal.classList.add('hidden');
-            document.body.style.overflow = '';
-        }
-
-        /**
-         * Calls the Gemini API to generate a follow-up debate question.
-         */
-        window.generateDebateQuestion = async function() {
-            generateButton.disabled = true;
-            buttonText.textContent = 'Generando...';
-            loadingIndicator.classList.remove('hidden');
-            debateQuestion.textContent = 'Cargando pregunta...';
-
-            const userQuery = `Based on the following content, generate ONE concise and open-ended debate question for students in the Spanish language. The question should encourage critical thinking about the social implications of the content. Content: "${currentSegmentContent}"`;
-            const systemPrompt = "You are a specialized academic assistant. Your task is to generate a single, thought-provoking debate question based on the provided text. The output MUST be only the question, formatted in Spanish.";
+            const systemPrompt = "You are a specialized academic quiz generator. Your task is to generate a structured JSON object for a multiple-choice question based on the provided context. Ensure the distractors are relevant to the topic but incorrect. The JSON must adhere strictly to the schema.";
 
             const payload = {
                 contents: [{ parts: [{ text: userQuery }] }],
                 systemInstruction: {
                     parts: [{ text: systemPrompt }]
                 },
-                config: {
-                    temperature: 0.8,
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "question": { "type": "STRING", "description": "The generated multiple-choice question." },
+                            "options": {
+                                "type": "ARRAY",
+                                "description": "Four possible answers.",
+                                "items": { "type": "STRING" }
+                            },
+                            "correctIndex": { "type": "INTEGER", "description": "The 0-based index (0 to 3) of the correct option." }
+                        },
+                        required: ["question", "options", "correctIndex"]
+                    }
                 }
             };
-            
+
             for (let attempt = 1; attempt <= RETRY_ATTEMPTS; attempt++) {
                 try {
                     const response = await fetch(API_URL, {
@@ -385,31 +318,279 @@
                     }
 
                     const result = await response.json();
-                    const generatedText = result.candidates?.[0]?.content?.parts?.[0]?.text || "Error: No se pudo generar la pregunta.";
-                    
-                    // Display the generated text
-                    debateQuestion.textContent = generatedText;
-
-                    break; // Success, exit loop
+                    const jsonString = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (jsonString) {
+                        const parsedData = JSON.parse(jsonString);
+                        // Basic validation
+                        if (parsedData.options && parsedData.options.length === 4 && typeof parsedData.correctIndex === 'number') {
+                            return parsedData;
+                        }
+                    }
+                    throw new Error("Invalid or missing structured response from LLM.");
 
                 } catch (error) {
                     console.error(`Attempt ${attempt} failed:`, error);
                     if (attempt === RETRY_ATTEMPTS) {
-                        debateQuestion.textContent = "Error al conectar con la IA. Inténtalo de nuevo más tarde.";
+                        return null; // Final failure
                     } else {
-                        // Exponential backoff
                         const delay = Math.pow(2, attempt) * 1000;
                         await new Promise(resolve => setTimeout(resolve, delay));
                     }
                 }
             }
-            
-            // Revert button state
-            generateButton.disabled = false;
-            buttonText.textContent = '✨ Generar Pregunta de Debate';
-            loadingIndicator.classList.add('hidden');
+            return null;
         }
 
+        // --- GAME DISPLAY & LOGIC ---
+        
+        /**
+         * Displays the game modal and initiates MCQ generation.
+         * @param {object} segment The winning segment object.
+         */
+        async function showGameModal(segment) {
+            modalTitle.textContent = `Question ${segment.id}: ${segment.title}`;
+            
+            // Show loading, hide game
+            loadingScreen.classList.remove('hidden');
+            gameContent.classList.add('hidden');
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            // Reset UI elements
+            optionsContainer.innerHTML = '';
+            resultMessage.classList.add('hidden');
+            geminiHint.classList.add('hidden');
+            geminiHint.textContent = '';
+            
+            // Re-enable lifelines (they are disabled globally when used)
+            if (!used5050) help5050.disabled = false;
+            if (!usedAskGemini) helpAskGemini.disabled = false;
+
+
+            // 1. Fetch MCQ Data
+            gameData = await fetchMCQ(segment);
+
+            if (!gameData) {
+                loadingScreen.innerHTML = '<p class="text-red-600 font-bold">Error: Could not generate the question. Please try again.</p>';
+                return;
+            }
+
+            // 2. Hide loading, show game
+            loadingScreen.classList.add('hidden');
+            gameContent.classList.remove('hidden');
+            gameQuestion.textContent = gameData.question;
+
+            // 3. Render options
+            gameData.options.forEach((optionText, index) => {
+                const optionButton = document.createElement('button');
+                optionButton.id = `option-${index}`;
+                optionButton.className = 'option-button w-full text-left py-3 px-4 bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-600 transition disabled:opacity-75 disabled:cursor-not-allowed';
+                optionButton.textContent = `${indexToLetter(index)}: ${optionText}`;
+                optionButton.onclick = () => checkAnswer(optionButton, index);
+                optionsContainer.appendChild(optionButton);
+            });
+        }
+        
+        /**
+         * Checks the user's selected answer.
+         * @param {HTMLElement} button The button element selected.
+         * @param {number} selectedIndex The 0-based index of the selection.
+         */
+        window.checkAnswer = function(button, selectedIndex) {
+            // Disable all buttons immediately after selection
+            const buttons = optionsContainer.querySelectorAll('.option-button');
+            buttons.forEach(btn => btn.disabled = true);
+            help5050.disabled = true;
+            helpAskGemini.disabled = true;
+
+            const correctIndex = gameData.correctIndex;
+            const correctButton = document.getElementById(`option-${correctIndex}`);
+
+            resultMessage.classList.remove('hidden');
+            
+            if (selectedIndex === correctIndex) {
+                button.classList.add('correct');
+                resultMessage.textContent = 'Correct! Congratulations!';
+                resultMessage.classList.remove('bg-red-500');
+                resultMessage.classList.add('bg-green-500', 'text-white');
+            } else {
+                button.classList.add('incorrect');
+                correctButton.classList.add('correct'); // Highlight correct answer
+                resultMessage.textContent = `Incorrect! The correct answer was ${indexToLetter(correctIndex)}.`;
+                resultMessage.classList.remove('bg-green-500');
+                resultMessage.classList.add('bg-red-500', 'text-white');
+            }
+        }
+        
+        // --- LIFELINES (HELPS) ---
+
+        /**
+         * Eliminates two incorrect answers (50/50).
+         */
+        window.use5050 = function() {
+            if (used5050) return;
+            
+            const correctIndex = gameData.correctIndex;
+            const options = optionsContainer.querySelectorAll('.option-button');
+            
+            let incorrectIndices = [];
+            for (let i = 0; i < 4; i++) {
+                if (i !== correctIndex) {
+                    incorrectIndices.push(i);
+                }
+            }
+            
+            // Randomly select two incorrect options to eliminate
+            // We use the two first elements of the shuffled array (Math.random() - 0.5)
+            incorrectIndices.sort(() => Math.random() - 0.5);
+            
+            let eliminatedCount = 0;
+            // Iterate over the first two incorrect indices and eliminate them
+            for (let i = 0; i < incorrectIndices.length; i++) {
+                const indexToEliminate = incorrectIndices[i];
+                const optionToEliminate = document.getElementById(`option-${indexToEliminate}`);
+                
+                // Only eliminate if the option has not been selected yet (should not happen)
+                // and if it's not the correct answer.
+                if (eliminatedCount < 2 && indexToEliminate !== correctIndex) {
+                    optionToEliminate.disabled = true;
+                    optionToEliminate.classList.add('disabled-option');
+                    eliminatedCount++;
+                }
+                if (eliminatedCount === 2) break;
+            }
+
+            used5050 = true;
+            help5050.disabled = true;
+        }
+
+        /**
+         * Calls Gemini to get a hint or suggested answer.
+         */
+        window.useAskGemini = async function() {
+            if (usedAskGemini) return;
+
+            helpAskGemini.disabled = true;
+            geminiHint.classList.remove('hidden');
+            geminiHint.textContent = 'Gemini is thinking...';
+
+            const hintQuery = `Act as an expert in the field of social work. Analyze the following question and options, and provide a single, concise hint or suggestion (in English) that leads the student toward the correct answer without revealing it directly.
+                Question: "${gameData.question}"
+                Options: ${JSON.stringify(gameData.options)}
+                Correct Answer Index: ${gameData.correctIndex}
+            `;
+            
+            const systemPrompt = "You are a helpful quiz master. Provide a single, short, and subtle hint in English.";
+
+            const payload = {
+                contents: [{ parts: [{ text: hintQuery }] }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                }
+            };
+            
+            let hintText = "Error: Could not retrieve the hint.";
+
+            for (let attempt = 1; attempt <= RETRY_ATTEMPTS; attempt++) {
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    hintText = result.candidates?.[0]?.content?.parts?.[0]?.text || hintText;
+                    break; 
+                } catch (error) {
+                    console.error(`Attempt ${attempt} failed:`, error);
+                    if (attempt === RETRY_ATTEMPTS) {
+                        hintText = "Error connecting to AI. Please try again.";
+                    } else {
+                        const delay = Math.pow(2, attempt) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
+                }
+            }
+
+            geminiHint.textContent = `Gemini's Hint: ${hintText}`;
+            usedAskGemini = true;
+        }
+
+        /**
+         * Hides the modal and resets game state.
+         */
+        window.closeModal = function() {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+            gameData = null; // Reset for next game
+        }
+
+        // --- WHEEL MECHANICS ---
+
+        /**
+         * Starts the wheel spin.
+         */
+        window.spinWheel = function() {
+            if (isSpinning) return;
+            isSpinning = true;
+            spinButton.disabled = true;
+            messageElement.textContent = 'Spinning...! Good luck!';
+            
+            // Reset lifelines usage for the new round
+            used5050 = false;
+            usedAskGemini = false;
+            help5050.disabled = true; // Disabled initially until game is ready
+            helpAskGemini.disabled = true; // Disabled initially until game is ready
+
+            const minRotations = 5;
+            const maxRotations = 10;
+            const fullRotations = Math.floor(Math.random() * (maxRotations - minRotations + 1)) + minRotations;
+            const fullRotationAngle = fullRotations * 360;
+
+            const winningIndex = Math.floor(Math.random() * questions.length); 
+            const winningQuestion = questions[winningIndex];
+
+            // Note: The logic for calculating the target angle based on sectorStart/sectorCenter 
+            // is not fully implemented in the current code (minAngle is missing in questions data).
+            // For simplicity and to maintain current functionality, we'll use a random angle within the winning sector.
+            
+            // Determine the sector angle range for the winning question (90 degrees per sector)
+            let sectorStartAngle = (winningIndex * 90); // 0, 90, 180, 270 degrees
+            
+            // Calculate a random angle within that 90-degree sector
+            // We want the indicator (at the top, 0 degrees) to land in this sector.
+            // Wheel angle is the negative rotation required.
+            
+            // Random angle within the sector (e.g., if Q1 (0-90), land between 5 and 85)
+            const randomAngleInSector = sectorStartAngle + (Math.random() * 80 + 5); 
+            
+            // The final angle the wheel must rotate to. We subtract 360 to ensure the angle is calculated from the wheel's perspective.
+            // The wheel rotates clockwise.
+            let finalSpinAngle = fullRotationAngle + (360 - randomAngleInSector);
+
+
+            wheel.style.transform = `rotate(${finalSpinAngle}deg)`;
+
+            // Wait for the transition to finish (5 seconds)
+            setTimeout(() => {
+                isSpinning = false;
+                spinButton.disabled = false;
+
+                const effectiveAngle = finalSpinAngle % 360;
+                // Recalculate the result using the actual final angle applied.
+                const result = getWinningSegment(effectiveAngle); 
+
+                messageElement.textContent = `Landed on Question ${result.id}!`;
+                showGameModal(result); // Show the new game modal
+
+            }, 5000); // Matches the CSS transition time
+        }
+        
         // --- INITIALIZATION ---
         window.onload = () => {
              // Ensure the wheel starts with no previous rotation applied in JS
